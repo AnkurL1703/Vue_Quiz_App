@@ -1,0 +1,117 @@
+<html>
+
+<head>
+  <title>Vue Quiz App</title>
+
+  <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+    crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+    crossorigin="anonymous">
+  <!-- Optional theme -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp"
+    crossorigin="anonymous">
+  <!-- Latest compiled and minified JavaScript -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+    crossorigin="anonymous"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+</head>
+
+<body>
+  <div id="quiz">
+    <blog-post v-for="post in posts" v-bind:class="'question-' + post.id" v-bind:key="post.id" v-bind:post="post"></blog-post>
+  </div>
+</body>
+
+</html>
+
+
+
+<script type="text/javascript">
+  var _ = _.noConflict();
+
+  Vue.component('blog-post', {
+    props: ['post'],
+    template: `
+    <div class="blog-post col-md-2 form-group row">
+      <h3>{{ post.title }}</h3>
+      <button class="btn btn-primary" @click="capture(post.id , option , $event)" v-for="option in post.mcq">
+        {{option}}</button>
+    </div>
+  `,
+    methods: {
+      capture: function (id, option, event) {
+        let children = this.$el.children;
+        let currentClasses = event.target.classList;
+        currentClasses.remove('btn-primary');
+        for (let entry of quizApp.$data.posts) {
+          if (entry.id === id) {
+            console.log("question-" + id);
+            if (entry.answer === option) {
+              currentClasses.add('btn-success');
+              event.target.classList = currentClasses;
+            } else {
+              currentClasses.add('btn-danger');
+            }
+          }
+        }
+
+        for (let child of _.drop(children, 1)) {
+          child.disabled = true;
+        }
+
+      }
+    }
+  });
+
+  var quizApp = new Vue({
+    el: '#quiz',
+    data: {
+      totalQuestions: 4,
+      answerRange: 300,
+      posts: []
+    },
+    mounted: function () {
+      this.$nextTick(function () {
+        let someArray = Array.from(new Array(this.totalQuestions), (val, index) => index + 1);
+        let questionList = this.posts;
+        for (let entry of someArray) {
+          let a = _.random(this.answerRange);
+          let b = _.random(this.answerRange);
+          let mcq = createOptions(a, b, this.answerRange);
+          let title = 'Q' + entry + ') ' + a + '+' + b + ' =?';
+          questionList.push({ id: entry, title: title, mcq: mcq, answer: a + b });
+        }
+
+      })
+    },
+  });
+
+  function createOptions(a, b, answerRange) {
+    let mcq = [];
+    mcq.push(a + b);
+    mcq.push((_.random(answerRange)));
+    mcq.push((_.random(answerRange)));
+    mcq.push((_.random(answerRange)));
+    return _.shuffle(mcq);
+  }
+
+
+
+</script>
+
+<style>
+  .blog-post {
+    background-color: darkgray;
+    border: thick solid lightseagreen;
+    border-radius: 10px;
+    margin: 20px;
+  }
+
+  .btn {
+    width: 50px;
+    margin: 15px;
+  }
+</style>
